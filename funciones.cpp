@@ -23,7 +23,7 @@ const map<string, int> valoresCartas = {
 
 
 void limpiar_pantalla() {
-    cout << "\033[2J\033[H" << flush;
+     cout << "\033[2J\033[3J\033[H" << flush;
 }
 
 void animacion_cargando(string mensaje, int vueltas, int velocidad_ms) {

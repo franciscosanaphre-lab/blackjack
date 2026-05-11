@@ -11,8 +11,6 @@
 
 using namespace std; 
 
-
-
 int main(){
 
 
@@ -31,10 +29,32 @@ int main(){
                                              \$$$$$$                              
     )" << endl;
 
-    
-    cout << "Turno del dealer..." << endl;
-    animacion_cargando("El dealer está pensando");
-    
 
+    int opcion;
+
+    do {
+        cout << "\n=== MENU PRINCIPAL ===" << endl;
+        cout << "1. Jugar" << endl;
+        cout << "2. Salir" << endl;
+        cout << "Elige: ";
+        cin >> opcion;
+        
+        switch (opcion) {
+            case 1:{
+                juego nuevo_juego;
+                animacion_cargando("Empezando nuevo juego");
+                nuevo_juego.empezar_juego();
+                nuevo_juego.guardar_juego();
+                //cout << "El juego ha terminado.." <<endl;
+                break;
+            }
+            case 2:
+                cout << "Saliendo del programa." << endl;
+                break;
+            default:
+                cout << "Opción inválida." << endl;
+        }
+    } while (opcion != 2);
+    
     return 0;
 }

@@ -28,6 +28,8 @@ class juego{
             "A", "A", "A", "A"
         };
 
+        int id;
+
         std::vector<std::string> baraja;
     public:
         juego();
@@ -35,6 +37,8 @@ class juego{
         std::string sacar_carta();
         void empezar_juego();
         void mostrar_estado();
+        void guardar_estado();
+        void guardar_juego();
 
 };
 
