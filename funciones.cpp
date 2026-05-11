@@ -3,6 +3,8 @@
 #include <map>
 using namespace std;
 
+#include <thread>
+#include <chrono>
 
 const map<string, int> valoresCartas = {
     {"2", 2},
@@ -18,6 +20,22 @@ const map<string, int> valoresCartas = {
     {"Q", 10},
     {"K", 10}
 };
+
+
+void limpiar_pantalla() {
+    cout << "\033[2J\033[H" << flush;
+}
+
+void animacion_cargando(string mensaje, int vueltas, int velocidad_ms) {
+    char frames[] = {'|', '/', '-', '\\'};
+
+    for (int i = 0; i < vueltas; i++) {
+        cout << "\r" << mensaje << " " << frames[i % 4] << flush;
+        this_thread::sleep_for(chrono::milliseconds(velocidad_ms));
+    }
+
+    cout << "\r\033[2K" << flush; // limpia la línea
+}
 
 int calcular_valor_baraja(vector<string> baraja){
 

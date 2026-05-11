@@ -15,6 +15,7 @@ class jugador{
         void agregar_carta(std::string carta);
         void limpiar_cartas();
         virtual void ver_cartas();
+        std::vector<std::string> obtener_baraja();
 };
 
 #endif

@@ -5,10 +5,13 @@
 #include "jugador.h"
 #include "dealer.h"
 #include "funciones.h"
+#include "juego.h"
 
-// g++ main.cpp dealer.cpp funciones.cpp jugador.cpp -o main.exe 
+// g++ main.cpp dealer.cpp funciones.cpp jugador.cpp juego.cpp -o main.exe 
 
 using namespace std; 
+
+
 
 int main(){
 
@@ -28,17 +31,10 @@ int main(){
                                              \$$$$$$                              
     )" << endl;
 
-    jugador jugador_principal;
-    jugador_principal.agregar_carta("A");
-
-    vector<string> test = {
-        "A","J","2"
-    }; 
-
-    jugador_principal.ver_cartas();
-
-    dealer jugador_dealer;
-    jugador_dealer.ver_cartas();
+    
+    cout << "Turno del dealer..." << endl;
+    animacion_cargando("El dealer está pensando");
+    
 
     return 0;
 }
