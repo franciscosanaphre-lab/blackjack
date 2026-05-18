@@ -5,6 +5,8 @@ using namespace std;
 
 #include <thread>
 #include <chrono>
+#include <sstream>
+#include <string>
 
 const map<string, int> valoresCartas = {
     {"2", 2},

@@ -16,6 +16,7 @@ class jugador{
         void limpiar_cartas();
         virtual void ver_cartas();
         std::vector<std::string> obtener_baraja();
+        std::vector<std::string> obtener_baraja_sin_formato();
 };
 
 #endif

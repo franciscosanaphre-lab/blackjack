@@ -53,8 +53,8 @@ void juego::guardar_estado(){
         mano_dealer_string += mano_dealer[i]+" ";
     }
 
-    int valor_jugador = calcular_valor_baraja(juego_jugador.obtener_baraja());
-    int valor_dealer = calcular_valor_baraja(dealer_juego.obtener_baraja());
+    int valor_jugador = calcular_valor_baraja(juego_jugador.obtener_baraja_sin_formato());
+    int valor_dealer = calcular_valor_baraja(dealer_juego.obtener_baraja_sin_formato());
 
     logs+="\n-----------------------";
     logs+="\nMano del jugador: "+mano_jugador_string;
@@ -73,13 +73,13 @@ void juego::mostrar_estado() {
     cout << endl;
     cout << "[+] Tu mano:" << endl;
     juego_jugador.ver_cartas();
-    cout << "Valor: " << calcular_valor_baraja(juego_jugador.obtener_baraja()) << endl;
+    cout << "Valor: " << calcular_valor_baraja(juego_jugador.obtener_baraja_sin_formato()) << endl;
 
     cout << endl;
     cout << "Mano del dealer:" << endl;
     dealer_juego.ver_cartas();
 
-    vector<string> dealer_baraja = dealer_juego.obtener_baraja();
+    vector<string> dealer_baraja = dealer_juego.obtener_baraja_sin_formato();
 
     dealer_baraja.erase(dealer_baraja.begin());
     
@@ -136,7 +136,7 @@ void juego::empezar_juego(){
     mostrar_estado();
     guardar_estado();
 
-    int valor_mano = calcular_valor_baraja(juego_jugador.obtener_baraja());
+    int valor_mano = calcular_valor_baraja(juego_jugador.obtener_baraja_sin_formato());
 
     if (valor_mano == 21){
         cout << "Ganaste con 21 puntos" << endl;
@@ -175,7 +175,7 @@ void juego::empezar_juego(){
             //cout << "Tu nueva mano: " << endl;
             //juego_jugador.ver_cartas();
 
-            valor_mano = calcular_valor_baraja(juego_jugador.obtener_baraja());
+            valor_mano = calcular_valor_baraja(juego_jugador.obtener_baraja_sin_formato());
             //cout << "Valor:" << valor_mano << endl;
 
             if (valor_mano == 21){
@@ -199,8 +199,8 @@ void juego::empezar_juego(){
             break;
         }
 
-        int valor_mano_dealer = calcular_valor_baraja(dealer_juego.obtener_baraja());
-        int valor_mano_jugador = calcular_valor_baraja(juego_jugador.obtener_baraja());
+        int valor_mano_dealer = calcular_valor_baraja(dealer_juego.obtener_baraja_sin_formato());
+        int valor_mano_jugador = calcular_valor_baraja(juego_jugador.obtener_baraja_sin_formato());
 
         cout << "Turno del dealer:" << endl;
         logs = logs+"\nTurno del dealer.";
@@ -243,7 +243,7 @@ void juego::empezar_juego(){
             cout << "El dealer obtuvo esta nueva carta: " << nueva_carta << endl;
             logs = logs+"\nEl dealer obtuvo: "+nueva_carta;
 
-            valor_mano_dealer = calcular_valor_baraja(dealer_juego.obtener_baraja());
+            valor_mano_dealer = calcular_valor_baraja(dealer_juego.obtener_baraja_sin_formato());
             logs = logs+"\nValor de la mano del dealer: "+to_string(valor_mano_dealer);
 
             if (valor_mano_dealer>21) {
