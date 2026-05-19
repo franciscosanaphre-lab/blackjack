@@ -1,57 +1,47 @@
 #include <iostream>
 #include "juego.h"
-
 #include <fstream>
 #include <string>
-
 #include <random>
 #include <algorithm>
+#include <chrono>
+#include <thread>
 
 using namespace std;
+
 string leer_archivo(string nombre_archivo) {
     ifstream archivoIn(nombre_archivo);
-
     string linea;
     getline(archivoIn, linea);
-
     return linea;
-} 
-
+}
 
 void escribir_archivo(string nombre_archivo, string texto){
     ofstream archivoOut(nombre_archivo);
-
     if(!archivoOut){
-        cerr << "Error: No fue posible abrir el archivo!!!" << std::endl;
+        cerr << "Error: No fue posible abrir el archivo!!!" << endl;
         return;
     }
-
     archivoOut << texto << endl;
-   
     archivoOut.close();
 }
 
 void juego::guardar_juego(){
     string nombre_archivo = "juegos/juego_"+to_string(id)+".txt";
-    escribir_archivo(nombre_archivo,logs);
+    escribir_archivo(nombre_archivo, logs);
 }
-
 
 void juego::guardar_estado(){
     vector<string> mano_jugador = juego_jugador.obtener_baraja();
     vector<string> mano_dealer = dealer_juego.obtener_baraja();
 
     string mano_jugador_string = "";
-
-    for (int i=0; i<mano_jugador.size(); i++){
+    for (size_t i=0; i<mano_jugador.size(); i++)
         mano_jugador_string += mano_jugador[i]+" ";
-    }
 
     string mano_dealer_string = "";
-
-    for (int i=0; i<mano_dealer.size(); i++){
+    for (size_t i=0; i<mano_dealer.size(); i++)
         mano_dealer_string += mano_dealer[i]+" ";
-    }
 
     int valor_jugador = calcular_valor_baraja(juego_jugador.obtener_baraja_sin_formato());
     int valor_dealer = calcular_valor_baraja(dealer_juego.obtener_baraja_sin_formato());
@@ -61,36 +51,44 @@ void juego::guardar_estado(){
     logs+="\nValor de su mano: " +to_string(valor_jugador);
     logs+="\nMano del dealer: "+mano_dealer_string;
     logs+="\nValor de su mano: "+to_string(valor_dealer);
-
 }
 
 void juego::mostrar_estado() {
     limpiar_pantalla();
-
-    cout << "======================" << endl;
-    cout << "      BLACKJACK       " << endl;
-    cout << "======================" << endl;
+    set_color(CIAN); cout << NEGRITA;
+    cout << "======================================" << endl;
+    cout << "              BLACKJACK                " << endl;
+    cout << "======================================" << endl;
+    set_color(RESET);
     cout << endl;
-    cout << "[+] Tu mano:" << endl;
+
+    set_color(AZUL); cout << "[+] TU MANO:" << endl; set_color(RESET);
     juego_jugador.ver_cartas();
-    cout << "Valor: " << calcular_valor_baraja(juego_jugador.obtener_baraja_sin_formato()) << endl;
-
+    int valor_jug = calcular_valor_baraja(juego_jugador.obtener_baraja_sin_formato());
+    if (valor_jug > 21) set_color(ROJO);
+    else set_color(VERDE);
+    cout << "Valor: " << valor_jug << endl;
+    set_color(RESET);
     cout << endl;
-    cout << "Mano del dealer:" << endl;
-    dealer_juego.ver_cartas();
 
-    vector<string> dealer_baraja = dealer_juego.obtener_baraja_sin_formato();
+    set_color(AMARILLO); cout << "[?] MANO DEL DEALER:" << endl; set_color(RESET);
+    dealer_juego.ver_cartas(false);   // oculta segunda carta
 
-    dealer_baraja.erase(dealer_baraja.begin());
-    
-    cout << "Valor del dealer es al menos: " << calcular_valor_baraja(dealer_baraja) << endl;
-
+    vector<string> dealer_baraja_parcial = dealer_juego.obtener_baraja_sin_formato();
+    if (!dealer_baraja_parcial.empty()) {
+        string primera_carta = dealer_baraja_parcial[0];
+        vector<string> solo_primera = {primera_carta};
+        int valor_minimo = calcular_valor_baraja(solo_primera);
+        cout << "Valor del dealer es al menos: ";
+        set_color(valor_minimo <= 21 ? VERDE : ROJO);
+        cout << valor_minimo << endl;
+        set_color(RESET);
+    }
     cout << endl;
 }
 
 juego::juego(){
     int numero_juego = stoi(leer_archivo("no_juego.txt")) + 1;
-    cout << "Numero de juego: "<< numero_juego << endl;
     escribir_archivo("no_juego.txt", to_string(numero_juego));
     id = numero_juego;
 }
@@ -98,160 +96,119 @@ juego::juego(){
 string juego::sacar_carta(){
     random_device rd;
     mt19937 gen(rd());
-
     shuffle(baraja.begin(), baraja.end(), gen);
-
     string carta1 = baraja.back();
     baraja.pop_back();
-
     return carta1;
 }
 
 void juego::empezar_juego(){
-
     baraja = baraja_default;
     animacion_cargando("Repartiendo 2 cartas a cada jugador");
-    
+
+    juego_jugador.limpiar_cartas();
+    dealer_juego.limpiar_cartas();
+
     juego_jugador.agregar_carta(sacar_carta());
     juego_jugador.agregar_carta(sacar_carta());
-
     dealer_juego.agregar_carta(sacar_carta());
     dealer_juego.agregar_carta(sacar_carta());
-
-    /*
-
-    cout << "Cartas repartidas." << endl;
-    cout << "Tu mano:" << endl;
-    juego_jugador.ver_cartas();
-
-    
-
-    cout << "Valor de mano: " << valor_mano << endl;
-
-    cout << "Mano del dealer:" << endl;
-    dealer_juego.ver_cartas();
-
-    */ 
 
     mostrar_estado();
     guardar_estado();
 
     int valor_mano = calcular_valor_baraja(juego_jugador.obtener_baraja_sin_formato());
-
     if (valor_mano == 21){
-        cout << "Ganaste con 21 puntos" << endl;
+        set_color(VERDE); cout << NEGRITA << "¡BLACKJACK! Has ganado con 21 puntos." << RESET << endl;
+        logs += "\nEl jugador gano con 21 puntos";
         return;
-    } else if (valor_mano>21){
-        cout << "Perdiste, te sobraron: " << valor_mano-21 << " puntos." << endl;
+    } else if (valor_mano > 21){
+        set_color(ROJO); cout << "Perdiste, te pasaste por " << (valor_mano-21) << " puntos." << RESET << endl;
+        logs += "\nEl jugador perdio, le sobraron: "+to_string(valor_mano-21)+" puntos.";
         return;
     }
 
-    while (true) {
-
+    // Turno del jugador
+    bool plantado = false;
+    while (!plantado) {
         int opcion;
-        bool plantado = false;
-
-        cout << "Tu turno." << endl;
-        cout << "Presione (1) para pedir carta." << endl;
-        cout << "Presione (2) para plantarse" << endl;
-
+        cout << NEGRITA << "Tu turno:" << RESET << endl;
+        cout << "  (1) " << VERDE << "Pedir carta" << RESET << endl;
+        cout << "  (2) " << AMARILLO << "Plantarse" << RESET << endl;
+        cout << "Elige: ";
         cin >> opcion;
 
-        string nueva_carta;
-
-        switch (opcion)
-        {
-        case 1:
-            
+        if (opcion == 1) {
             animacion_cargando("Pidiendo carta nueva");
-            nueva_carta = sacar_carta();
-
-            logs = logs+"\nEl jugador pidio carta nueva: "+ nueva_carta;
-            
+            string nueva_carta = sacar_carta();
+            logs += "\nEl jugador pidio carta nueva: "+ nueva_carta;
             juego_jugador.agregar_carta(nueva_carta);
             mostrar_estado();
             guardar_estado();
-            cout << "Te dieron la carta: '"<< nueva_carta << "'" << endl;
-            //cout << "Tu nueva mano: " << endl;
-            //juego_jugador.ver_cartas();
+
+            set_color(MAGENTA); cout << "Te dieron: "; mostrar_carta(nueva_carta); cout << RESET << endl;
 
             valor_mano = calcular_valor_baraja(juego_jugador.obtener_baraja_sin_formato());
-            //cout << "Valor:" << valor_mano << endl;
-
             if (valor_mano == 21){
-                cout << "Ganaste con 21 puntos" << endl;
-                logs = logs+"\nEl jugador gano con 21 puntos";
+                set_color(VERDE); cout << NEGRITA << "¡Has alcanzado 21! Ganas automáticamente." << RESET << endl;
+                logs += "\nEl jugador gano con 21 puntos";
                 return;
-            } else if (valor_mano>21){
-                cout << "Perdiste, te sobraron: " << valor_mano-21 << " puntos." << endl;
-                logs = logs+"\nEl jugador perdio, le sobraron: "+to_string(valor_mano-21)+" puntos.";
+            } else if (valor_mano > 21){
+                set_color(ROJO); cout << "Te pasaste por " << (valor_mano-21) << " puntos. ¡Perdiste!" << RESET << endl;
+                logs += "\nEl jugador perdio, le sobraron: "+to_string(valor_mano-21)+" puntos.";
                 return;
             }
-
-            break;
-        case 2:
-            cout << "Te plantaste." << endl;
-            logs = logs+"\nEl jugador se planto";
+        } else if (opcion == 2) {
+            cout << AMARILLO << "Te has plantado." << RESET << endl;
+            logs += "\nEl jugador se planto";
             plantado = true;
-            break;
-        default:
-            cout << "Opcion invalida, unicas opciones (1) o (2).";
-            break;
+        } else {
+            cout << ROJO << "Opción inválida. Elige 1 o 2." << RESET << endl;
         }
+    }
 
-        int valor_mano_dealer = calcular_valor_baraja(dealer_juego.obtener_baraja_sin_formato());
-        int valor_mano_jugador = calcular_valor_baraja(juego_jugador.obtener_baraja_sin_formato());
+    // Turno del dealer
+    cout << NEGRITA << "Turno del dealer:" << RESET << endl;
+    logs += "\nTurno del dealer.";
 
-        cout << "Turno del dealer:" << endl;
-        logs = logs+"\nTurno del dealer.";
+    limpiar_pantalla();
+    set_color(CIAN); cout << "=== REVELANDO CARTA OCULTA ===" << endl; set_color(RESET);
+    set_color(AMARILLO); cout << "Mano completa del dealer:" << endl; set_color(RESET);
+    dealer_juego.ver_cartas(true);
+    int valor_dealer = calcular_valor_baraja(dealer_juego.obtener_baraja_sin_formato());
+    if (valor_dealer <= 21) set_color(VERDE); else set_color(ROJO);
+    cout << "Valor actual: " << valor_dealer << RESET << endl;
+    this_thread::sleep_for(chrono::seconds(1));
 
-        // el dealer se planta
-        if (valor_mano_dealer>=17){
-            cout << "El dealer se a plantado." << endl;
-            logs = logs+"\nEl dealer se planta.";
-            if (plantado){
-                if (valor_mano_jugador == valor_mano_dealer){
-                    cout << "Hubo un empate!" << endl;
-                    logs = logs+"\nHubo empate";
-                } else if (valor_mano_jugador>valor_mano_dealer){
-                    cout << "Ganaste por " << valor_mano_jugador-valor_mano_dealer << " puntos. " << endl;
-                    logs = logs+"\nEl jugador gana por: "+to_string(valor_mano_jugador-valor_mano_dealer)+" puntos.";
-                } else {
-                    cout << "Perdiste, el dealer tenia: " << valor_mano_dealer << " puntos."<< endl;
-                    logs = logs+"\nEl jugador perdio, el dealer tenia:"+to_string(valor_mano_dealer)+" puntos."; 
-                }
-                return;
-            }
-        } 
-        // el dealer pide carta
-        else {
+    while (valor_dealer < 17) {
+        animacion_cargando("El dealer pide una carta", 12, 200);
+        string nueva_carta = sacar_carta();
+        logs += "\nEl dealer toma nueva carta: "+nueva_carta;
+        dealer_juego.agregar_carta(nueva_carta);
+        mostrar_estado();
+        guardar_estado();
+        cout << "El dealer recibe: "; mostrar_carta(nueva_carta); cout << endl;
+        valor_dealer = calcular_valor_baraja(dealer_juego.obtener_baraja_sin_formato());
+        if (valor_dealer > 21) break;
+        this_thread::sleep_for(chrono::seconds(1));
+    }
 
-            animacion_cargando("El dealer esta tomando una nueva carta",12,300);
-            logs = logs+"\nEl dealer esta tomando una nueva carta";
-            nueva_carta = sacar_carta();
-            dealer_juego.agregar_carta(nueva_carta);
+    int valor_jugador = calcular_valor_baraja(juego_jugador.obtener_baraja_sin_formato());
+    cout << "\n" << NEGRITA << "=== RESULTADO FINAL ===" << RESET << endl;
+    cout << "Tu puntuación: " << (valor_jugador <= 21 ? VERDE : ROJO) << valor_jugador << RESET << endl;
+    cout << "Puntuación del dealer: " << (valor_dealer <= 21 ? VERDE : ROJO) << valor_dealer << RESET << endl;
 
-            /*
-
-            cout << "Su mano: " << endl;
-            dealer_juego.ver_cartas();
-
-            */ 
-
-            mostrar_estado();
-            guardar_estado();
-            cout << "El dealer obtuvo esta nueva carta: " << nueva_carta << endl;
-            logs = logs+"\nEl dealer obtuvo: "+nueva_carta;
-
-            valor_mano_dealer = calcular_valor_baraja(dealer_juego.obtener_baraja_sin_formato());
-            logs = logs+"\nValor de la mano del dealer: "+to_string(valor_mano_dealer);
-
-            if (valor_mano_dealer>21) {
-                cout << "Has ganado!, el dealer se paso por " << valor_mano_dealer-21 << " puntos." << endl;
-                logs = logs+"\nEl jugador ha ganado!, el dealer se paso por:"+to_string(valor_mano_dealer-21)+" puntos";
-                return;
-            }
-            
-        }
+    if (valor_dealer > 21) {
+        set_color(VERDE); cout << NEGRITA << "¡El dealer se pasó! ¡Has ganado!" << RESET << endl;
+        logs += "\nEl jugador ha ganado!, el dealer se paso por:"+to_string(valor_dealer-21)+" puntos";
+    } else if (valor_jugador > valor_dealer) {
+        set_color(VERDE); cout << NEGRITA << "¡Felicidades! Has ganado." << RESET << endl;
+        logs += "\nEl jugador gana por: "+to_string(valor_jugador-valor_dealer)+" puntos.";
+    } else if (valor_jugador == valor_dealer) {
+        set_color(AMARILLO); cout << NEGRITA << "Empate." << RESET << endl;
+        logs += "\nHubo empate";
+    } else {
+        set_color(ROJO); cout << NEGRITA << "El dealer gana. ¡Suerte la próxima!" << RESET << endl;
+        logs += "\nEl jugador perdio, el dealer tenia:"+to_string(valor_dealer)+" puntos.";
     }
 }
