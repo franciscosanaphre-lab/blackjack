@@ -52,41 +52,69 @@ void juego::guardar_estado(){
     logs+="\nMano del dealer: "+mano_dealer_string;
     logs+="\nValor de su mano: "+to_string(valor_dealer);
 }
-
 void juego::mostrar_estado() {
     limpiar_pantalla();
-    set_color(CIAN); cout << NEGRITA;
+
+    set_color(CIAN);
+    cout << NEGRITA;
     cout << "======================================" << endl;
     cout << "              BLACKJACK                " << endl;
     cout << "======================================" << endl;
     set_color(RESET);
     cout << endl;
 
-    set_color(AZUL); cout << "[+] TU MANO:" << endl; set_color(RESET);
+    // Mano del jugador
+    set_color(AZUL);
+    cout << "[+] TU MANO:" << endl;
+    set_color(RESET);
+
     juego_jugador.ver_cartas();
+
     int valor_jug = calcular_valor_baraja(juego_jugador.obtener_baraja_sin_formato());
-    if (valor_jug > 21) set_color(ROJO);
-    else set_color(VERDE);
+
+    if (valor_jug > 21)
+        set_color(ROJO);
+    else
+        set_color(VERDE);
+
     cout << "Valor: " << valor_jug << endl;
     set_color(RESET);
     cout << endl;
 
-    set_color(AMARILLO); cout << "[?] MANO DEL DEALER:" << endl; set_color(RESET);
-    dealer_juego.ver_cartas(false);   // oculta segunda carta
+    // Mano del dealer
+    set_color(AMARILLO);
+    cout << "[?] MANO DEL DEALER:" << endl;
+    set_color(RESET);
+
+    dealer_juego.ver_cartas(false);   // oculta la segunda carta
 
     vector<string> dealer_baraja_parcial = dealer_juego.obtener_baraja_sin_formato();
-    if (!dealer_baraja_parcial.empty()) {
-        string primera_carta = dealer_baraja_parcial[0];
-        vector<string> solo_primera = {primera_carta};
-        int valor_minimo = calcular_valor_baraja(solo_primera);
+    vector<string> cartas_visibles_dealer;
+
+    for (size_t i = 0; i < dealer_baraja_parcial.size(); i++) {
+        if (i == 1) {
+            continue; // saltamos la segunda carta porque está oculta
+        }
+
+        cartas_visibles_dealer.push_back(dealer_baraja_parcial[i]);
+    }
+
+    if (!cartas_visibles_dealer.empty()) {
+        int valor_minimo = calcular_valor_baraja(cartas_visibles_dealer);
+
         cout << "Valor del dealer es al menos: ";
-        set_color(valor_minimo <= 21 ? VERDE : ROJO);
+
+        if (valor_minimo > 21)
+            set_color(ROJO);
+        else
+            set_color(VERDE);
+
         cout << valor_minimo << endl;
         set_color(RESET);
     }
+
     cout << endl;
 }
-
 juego::juego(){
     int numero_juego = stoi(leer_archivo("no_juego.txt")) + 1;
     escribir_archivo("no_juego.txt", to_string(numero_juego));
